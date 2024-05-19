@@ -68,22 +68,21 @@ def construct_universal_dylib(
         os.symlink(
             os.path.basename(arm64_input_dylib_path.resolve()), output_dylib_path
         )
+    elif is_fat_file(arm64_input_dylib_path) or not x86_64_input_dylib_path.exists():
+        with open(output_dylib_path, "wb") as dst:
+            with open(arm64_input_dylib_path, "rb") as src:
+                dst.write(src.read())
     else:
-        if is_fat_file(arm64_input_dylib_path) or not x86_64_input_dylib_path.exists():
-            with open(output_dylib_path, "wb") as dst:
-                with open(arm64_input_dylib_path, "rb") as src:
-                    dst.write(src.read())
-        else:
-            subprocess.check_call(
-                [
-                    LIPO,
-                    str(arm64_input_dylib_path.absolute()),
-                    str(x86_64_input_dylib_path.absolute()),
-                    "-output",
-                    str(output_dylib_path.absolute()),
-                    "-create",
-                ]
-            )
+        subprocess.check_call(
+            [
+                LIPO,
+                str(arm64_input_dylib_path.absolute()),
+                str(x86_64_input_dylib_path.absolute()),
+                "-output",
+                str(output_dylib_path.absolute()),
+                "-create",
+            ]
+        )
 
 
 print(rglob)

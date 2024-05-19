@@ -87,7 +87,7 @@ def fixup_dylib(
     content_directory: Path,
 ):
     dylib_id = get_dylib_id(dylib_path)
-    new_dylib_id = replacement_path + "/" + os.path.basename(dylib_id)
+    new_dylib_id = f"{replacement_path}/{os.path.basename(dylib_id)}"
     replace_dylib_id(dylib_path, new_dylib_id)
 
     dylib_dependencies = get_dylib_dependencies(dylib_path)
@@ -417,8 +417,6 @@ def fixup_linkedit(file, data: bytes, new_size: int):
             codesign_offset = offset
 
         offset += cmdsize
-        pass
-
     assert linkedit_offset is not None and symtab_offset is not None
 
     # If there is a codesign section, clean it up.
@@ -550,9 +548,7 @@ def get_path_related_to_other_path(a: Path, b: Path) -> str:
 
 
 def get_path_related_to_target_exec(input_directory: Path, path: Path):
-    return "@executable_path/../" + get_path_related_to_other_path(
-        input_directory, path
-    )
+    return f"@executable_path/../{get_path_related_to_other_path(input_directory, path)}"
 
 
 search_path = [
@@ -562,9 +558,7 @@ search_path = [
 
 
 for path in content_directory.rglob("**/*.dylib"):
-    current_search_path = [path.parent]
-    current_search_path.extend(search_path)
-
+    current_search_path = [path.parent, *search_path]
     fixup_dylib(
         path,
         get_path_related_to_target_exec(content_directory, path),
